@@ -475,7 +475,7 @@ _startapi() {
   starturi="$API"
   
   data="{\"tokenID\":\"$token\",\"actionType\":\"$action\""
-  if [ "$data" ] ; then
+  if [ "$arg" ] ; then
     data="$data,$arg}"
   else
     data="$data}"
@@ -846,6 +846,16 @@ _initpath() {
     USER_AGENT="$DEFAULT_USER_AGENT"
   fi
   
+  _DEFAULT_ACCOUNT_KEY_PATH="$STARTSSL_WORKING_DIR/account.key"
+  if [ -z "$ACCOUNT_KEY_PATH" ] ; then
+    ACCOUNT_KEY_PATH="$_DEFAULT_ACCOUNT_KEY_PATH"
+  fi
+  _debug "ACCOUNT_KEY_PATH" "$ACCOUNT_KEY_PATH"
+  _DEFAULT_ACCOUNT_CERT_PATH="$STARTSSL_WORKING_DIR/account.cer"
+  if [ -z "$ACCOUNT_CERT_PATH" ] ; then
+    ACCOUNT_CERT_PATH="$_DEFAULT_ACCOUNT_CERT_PATH"
+  fi
+  
   HTTP_HEADER="$STARTSSL_WORKING_DIR/http.header"
   
   WGET="wget -q --certificate=\"$ACCOUNT_CERT_PATH\" --private-key=\"$ACCOUNT_KEY_PATH\" "
@@ -863,17 +873,7 @@ _initpath() {
     WGET="$WGET --no-check-certificate "
     CURL="$CURL --insecure  "
   fi
-  
-  _DEFAULT_ACCOUNT_KEY_PATH="$STARTSSL_WORKING_DIR/account.key"
-  if [ -z "$ACCOUNT_KEY_PATH" ] ; then
-    ACCOUNT_KEY_PATH="$_DEFAULT_ACCOUNT_KEY_PATH"
-  fi
-  
-  _DEFAULT_ACCOUNT_CERT_PATH="$STARTSSL_WORKING_DIR/account.cer"
-  if [ -z "$ACCOUNT_CERT_PATH" ] ; then
-    ACCOUNT_CERT_PATH="$_DEFAULT_ACCOUNT_CERT_PATH"
-  fi
-  
+
   _DEFAULT_CERT_HOME="$STARTSSL_WORKING_DIR"
   if [ -z "$CERT_HOME" ] ; then
     CERT_HOME="$_DEFAULT_CERT_HOME"
