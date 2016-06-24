@@ -1076,13 +1076,13 @@ _isValidated() {
   _validated_list="$1"
   _domain="$2"
   alldomains=$(echo "$_validated_list" |  tr ',' ' ' )
-  for d in $alldomains
+  for _d in $alldomains
   do
-    if [ "$d" = "$_domain" ] ; then
+    if [ "$_d" = "$_domain" ] ; then
       return 0
     fi
     
-    if _endswith "$_domain" ".$d" ; then
+    if _endswith "$_domain" ".$_d" ; then
       return 0
     fi
   done
