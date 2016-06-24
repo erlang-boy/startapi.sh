@@ -1098,19 +1098,9 @@ _clearupwebbroot() {
     return 0
   fi
   
-  if [ "$2" = '1' ] ; then
-    _debug "remove $__webroot/.well-known"
-    rm -rf "$__webroot/.well-known"
-  elif [ "$2" = '2' ] ; then
-    _debug "remove $__webroot/.well-known/acme-challenge"
-    rm -rf "$__webroot/.well-known/acme-challenge"
-  elif [ "$2" = '3' ] ; then
-    _debug "remove $__webroot/.well-known/acme-challenge/$3"
-    rm -rf "$__webroot/.well-known/acme-challenge/$3"
-  else
-    _debug "Skip for removelevel:$2"
-  fi
-  
+  _debug "remove $__webroot/$3"
+  rm -rf "$__webroot/$3"
+
   return 0
 
 }
@@ -1313,14 +1303,8 @@ issue() {
         if [ "$_currentRoot" = "apache" ] ; then
           wellknown_path="$ACME_DIR"
         else
-          wellknown_path="$_currentRoot/.well-known/acme-challenge"
-          if [ ! -d "$_currentRoot/.well-known" ] ; then 
-            removelevel='1'
-          elif [ ! -d "$_currentRoot/.well-known/acme-challenge" ] ; then 
-            removelevel='2'
-          else
-            removelevel='3'
-          fi
+          wellknown_path="$_currentRoot"
+          removelevel='3'
         fi
 
         _debug wellknown_path "$wellknown_path"
@@ -1348,7 +1332,7 @@ issue() {
       waittimes=$(_math $waittimes + 1)
       if [ "$waittimes" -ge "$MAX_RETRY_TIMES" ] ; then
         _err "$d:Timeout"
-        _clearupwebbroot "$_currentRoot" "$removelevel" "$d"
+        _clearupwebbroot "$_currentRoot" "$removelevel" "$d.html"
         _clearup
         return 1
       fi
@@ -1360,7 +1344,7 @@ issue() {
       response="$(_WebControlValidation $d)"
       if [ "$?" != "0" ] ; then
         _err "$d:Verify error:$response"
-        _clearupwebbroot "$_currentRoot" "$removelevel" "$d"
+        _clearupwebbroot "$_currentRoot" "$removelevel" "$d.html"
         _clearup
         return 1
       fi
@@ -1372,13 +1356,13 @@ issue() {
         _info "Success"
         _stopserver $serverproc
         serverproc=""
-        _clearupwebbroot "$_currentRoot" "$removelevel" "$d"
+        _clearupwebbroot "$_currentRoot" "$removelevel" "$d.html"
         break;
       fi
       
       error="$(echo $response | grep  '"shortMsg":')"
       _err "$d:Verify error:$error"
-      _clearupwebbroot "$_currentRoot" "$removelevel" "$d"
+      _clearupwebbroot "$_currentRoot" "$removelevel" "$d.html"
       _clearup
       return 1;
       
