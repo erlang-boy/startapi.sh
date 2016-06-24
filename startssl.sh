@@ -1242,20 +1242,26 @@ issue() {
       
         _info "Getting token for domain" $d
         
-         if [ ! -z "$code" ] && [ ! "$code" = '201' ] ; then
-          _err "new-authz error: $response"
+        response="$(_ApplyWebControl "$d")"
+        if ! printf "%s" "$response" | grep '"status" : 1' >/dev/null 2>&1 ; then
+          _err "Get token error: $response"
           _clearup
           return 1
         fi
 
-        entry="$(printf "$response" | egrep -o  '\{[^{]*"type":"'$vtype'"[^}]*')"
+        if [ "$vtype" = "$VTYPE_HTTP" ] ; then
+          entry="$(printf "%s" "$response" | grep ' *"data" *:')"
+        else
+          #todo: not support email yet
+        fi
+        
         _debug entry "$entry"
         if [ -z "$entry" ] ; then
           _err "Error, can not get domain token $d"
           _clearup
           return 1
         fi
-        token="$(printf "$entry" | egrep -o '"token":"[^"]*' | cut -d : -f 2 | tr -d '"')"
+        token="$(printf "%s" "$entry" | cut -d : -f 2 | tr -d '" ' )"
       fi
 
       _debug token $token
