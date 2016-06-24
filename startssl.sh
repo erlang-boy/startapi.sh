@@ -1726,7 +1726,7 @@ _initconf() {
 
 #ACCOUNT_KEY_HASH=account key hash
 
-USER_AGENT=\"$USER_AGENT\"
+#USER_AGENT=\"$USER_AGENT\"
 
 #USER_PATH=""
 
@@ -1734,20 +1734,25 @@ USER_AGENT=\"$USER_AGENT\"
   fi
 }
 
+# nocron
 _precheck() {
+  _nocron="$1"
+  
   if ! _exists "curl"  && ! _exists "wget"; then
     _err "Please install curl or wget first, we need to access http resources."
     return 1
   fi
   
-  if ! _exists "crontab" ; then
-    _err "It is recommended to install crontab first. try to install 'cron, crontab, crontabs or vixie-cron'."
-    _err "We need to set cron job to renew the certs automatically."
-    _err "Otherwise, your certs will not be able to be renewed automatically."
-    if [ -z "$FORCE" ] ; then
-      _err "Please add '--force' and try install again to go without crontab."
-      _err "./$PROJECT_ENTRY --install --force"
-      return 1
+  if [ -z "$_nocron" ] ; then
+    if ! _exists "crontab" ; then
+      _err "It is recommended to install crontab first. try to install 'cron, crontab, crontabs or vixie-cron'."
+      _err "We need to set cron job to renew the certs automatically."
+      _err "Otherwise, your certs will not be able to be renewed automatically."
+      if [ -z "$FORCE" ] ; then
+        _err "Please add '--force' and try install again to go without crontab."
+        _err "./$PROJECT_ENTRY --install --force"
+        return 1
+      fi
     fi
   fi
   
@@ -1821,14 +1826,15 @@ _installalias() {
 
 }
 
+# nocron
 install() {
-
+  _nocron="$1"
   if ! _initpath ; then
     _err "Install failed."
     return 1
   fi
 
-  if ! _precheck ; then
+  if ! _precheck "$_nocron" ; then
     _err "Pre-check failed, can not install."
     return 1
   fi
@@ -1871,7 +1877,9 @@ install() {
     _saveaccountconf "ACCOUNT_KEY_PATH" "$ACCOUNT_KEY_PATH"
   fi
   
-  installcronjob
+  if [ -z "$_nocron" ] ; then
+    installcronjob
+  fi
 
   if [ -z "$NO_DETECT_SH" ] ; then
     #Modify shebang
@@ -1983,6 +1991,7 @@ Parameters:
   --httpport                        Specifies the standalone listening port. Only valid if the server is behind a reverse proxy or load balancer.
   --listraw                         Only used for '--list' command, list the certs in raw format.
   --stopRenewOnError, -se           Only valid for '--renewall' command. Stop to renew all if one cert has error in renewal.
+  --nocron                          Only valid for `--install` command, which means: do not install the default cron job. In this case, the certs will not be renewed automatically.
   "
 }
 
@@ -2032,7 +2041,7 @@ _process() {
   _listraw=""
   _stopRenewOnError=""
   _apiKey=""
-  _apiToken=""
+  _nocron=""
   while [ ${#} -gt 0 ] ; do
     case "${1}" in
     
@@ -2236,6 +2245,9 @@ _process() {
     --stopRenewOnError|--stoprenewonerror|-se )
         _stopRenewOnError="1"
         ;;
+    --nocron)
+        _nocron="1"
+        ;;
     *)
         _err "Unknown parameter : $1"
         return 1
@@ -2247,7 +2259,7 @@ _process() {
 
 
   case "${_CMD}" in
-    install) install ;;
+    install) install "$_nocron" ;;
     uninstall) uninstall ;;
     issue)
       issue  "$_webroot"  "$_domain" "$_altdomains" "$_keylength" "$_certpath" "$_keypath" "$_capath" "$_reloadcmd" "$_fullchainpath"
