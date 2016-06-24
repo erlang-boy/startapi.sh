@@ -1253,6 +1253,9 @@ issue() {
           entry="$(printf "%s" "$response" | grep ' *"data" *:')"
         else
           #todo: not support email yet
+          _err "Not implement for: $vtype"
+          _clearup
+          return 1
         fi
         
         _debug entry "$entry"
