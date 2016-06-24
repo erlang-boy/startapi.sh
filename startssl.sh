@@ -489,6 +489,7 @@ _startapi() {
     _err "_startapi error: $(echo $_response | grep shortMsg)"
     return 1
   fi
+  _debug2 "_response" "$_response"
   printf "%s" "$_response"
   
 }
