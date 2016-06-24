@@ -1251,7 +1251,7 @@ issue() {
         fi
 
         if [ "$vtype" = "$VTYPE_HTTP" ] ; then
-          entry="$(printf "%s" "$response" | grep ' *"data" *:')"
+          entry="$(printf "%s" "$response" | grep ' *"data" *:'| tr -d "\r\n")"
         else
           #todo: not support email yet
           _err "Not implement for: $vtype"
