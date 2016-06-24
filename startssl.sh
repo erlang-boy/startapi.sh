@@ -1243,7 +1243,7 @@ issue() {
         _info "Getting token for domain" $d
         
         response="$(_ApplyWebControl "$d")"
-        if ! printf "%s" "$response" | grep '"status" : 1' >/dev/null 2>&1 ; then
+        if ! printf "%s" "$response" | grep '"status" *: *1' >/dev/null 2>&1 ; then
           _err "Get token error: $response"
           _clearup
           return 1
