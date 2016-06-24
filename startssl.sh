@@ -1192,7 +1192,14 @@ issue() {
     fi
     return 1
   fi
-
+  
+  if [ -z "$ACCOUNT_TOKEN" ] ; then
+    _err "Please set account api token first."
+    if [ "$usingApache" ] ; then
+      _restoreApache
+    fi
+    return 1
+  fi
 
   if [ ! -f "$CERT_KEY_PATH" ] ; then
     if ! createDomainKey $Le_Domain $Le_Keylength ; then 
