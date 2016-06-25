@@ -1,4 +1,4 @@
-# An pure Shell script for startssl free certificate
+# A pure Shell script for startssl free certificate
 - Written purely in Shell (Unix shell) language.
 - Fully startapi implementation.
 - Support unlimited Class 1 free certificate from StartSSL.
