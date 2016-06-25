@@ -875,7 +875,7 @@ _initpath() {
   fi
 
   _CURL_DUMP="$STARTAPI_WORKING_DIR/curl.dump"
-  CURL="curl -L --silent –-key $ACCOUNT_KEY_PATH --cert $ACCOUNT_CERT_PATH "
+  CURL="curl -L --silent --key $ACCOUNT_KEY_PATH --cert $ACCOUNT_CERT_PATH "
   if [ "$DEBUG" ] && [ "$DEBUG" -ge "2" ] ; then
     CURL="$CURL --trace-ascii $_CURL_DUMP "
   fi
