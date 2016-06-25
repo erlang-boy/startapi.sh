@@ -278,7 +278,7 @@ setAPIKey() {
   _p12="$1"
   _password="$2"
   if [ -z "$_password" ] ; then
-    _err "Usage: setAPIKey  pfxfile  password"
+    _err "Usage: --setAPIKey  pfxfile  --password password"
     return 1
   fi
   _debug _p12 "$_p12"
