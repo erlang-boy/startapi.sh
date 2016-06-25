@@ -406,7 +406,7 @@ _post() {
   _debug "url" "$url"
   _debug2 "body" "$body"
   if _exists "curl" ; then
-    _CURL="$CURL --dump-header $HTTP_HEADER "
+    _CURL="$CURL --dump-header $HTTP_HEADER  --key $ACCOUNT_KEY_PATH --cert $ACCOUNT_CERT_PATH "
     _debug "_CURL" "$_CURL"
     if [ "$needbase64" ] ; then
       response="$($_CURL --user-agent "$USER_AGENT" -X $httpmethod -H "$_H1" -H "$_H2" -H "$_H3" -H "$_H4" --data-urlencode "$body" "$url" | _base64)"
@@ -422,18 +422,19 @@ _post() {
       fi
     fi
   else
-    _debug "WGET" "$WGET"
+    _WGET="$WGET --certificate=\"$ACCOUNT_CERT_PATH\" --private-key=\"$ACCOUNT_KEY_PATH\" "
+    _debug "_WGET" "$_WGET"
     if [ "$needbase64" ] ; then
       if [ "$httpmethod"="POST" ] ; then
-        response="$($WGET -S -O - --user-agent="$USER_AGENT" --header "$_H4" --header "$_H3" --header "$_H2" --header "$_H1" --post-data="$body" "$url" 2>"$HTTP_HEADER" | _base64)"
+        response="$($_WGET -S -O - --user-agent="$USER_AGENT" --header "$_H4" --header "$_H3" --header "$_H2" --header "$_H1" --post-data="$body" "$url" 2>"$HTTP_HEADER" | _base64)"
       else
-        response="$($WGET -S -O - --user-agent="$USER_AGENT" --header "$_H4" --header "$_H3" --header "$_H2" --header "$_H1" --method $httpmethod --body-data="$body" "$url" 2>"$HTTP_HEADER" | _base64)"
+        response="$($_WGET -S -O - --user-agent="$USER_AGENT" --header "$_H4" --header "$_H3" --header "$_H2" --header "$_H1" --method $httpmethod --body-data="$body" "$url" 2>"$HTTP_HEADER" | _base64)"
       fi
     else
       if [ "$httpmethod"="POST" ] ; then
-        response="$($WGET -S -O - --user-agent="$USER_AGENT" --header "$_H4" --header "$_H3" --header "$_H2" --header "$_H1" --post-data="$body" "$url" 2>"$HTTP_HEADER")"
+        response="$($_WGET -S -O - --user-agent="$USER_AGENT" --header "$_H4" --header "$_H3" --header "$_H2" --header "$_H1" --post-data="$body" "$url" 2>"$HTTP_HEADER")"
       else
-        response="$($WGET -S -O - --user-agent="$USER_AGENT" --header "$_H4" --header "$_H3" --header "$_H2" --header "$_H1" --method $httpmethod --body-data="$body" "$url" 2>"$HTTP_HEADER")"
+        response="$($_WGET -S -O - --user-agent="$USER_AGENT" --header "$_H4" --header "$_H3" --header "$_H2" --header "$_H1" --method $httpmethod --body-data="$body" "$url" 2>"$HTTP_HEADER")"
       fi
     fi
     _ret="$?"
@@ -869,13 +870,13 @@ _initpath() {
   
   HTTP_HEADER="$STARTAPI_WORKING_DIR/http.header"
   
-  WGET="wget -q --certificate=\"$ACCOUNT_CERT_PATH\" --private-key=\"$ACCOUNT_KEY_PATH\" "
+  WGET="wget -q "
   if [ "$DEBUG" ] && [ "$DEBUG" -ge "2" ] ; then
     WGET="$WGET -d "
   fi
 
   _CURL_DUMP="$STARTAPI_WORKING_DIR/curl.dump"
-  CURL="curl -L --silent --key $ACCOUNT_KEY_PATH --cert $ACCOUNT_CERT_PATH "
+  CURL="curl -L --silent "
   if [ "$DEBUG" ] && [ "$DEBUG" -ge "2" ] ; then
     CURL="$CURL --trace-ascii $_CURL_DUMP "
   fi
