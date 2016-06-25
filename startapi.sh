@@ -809,11 +809,11 @@ _stopserver(){
 
 _initpath() {
 
-  if [ -z "$STARTSSL_WORKING_DIR" ] ; then
-    STARTSSL_WORKING_DIR=$HOME/.$PROJECT_NAME
+  if [ -z "$STARTAPI_WORKING_DIR" ] ; then
+    STARTAPI_WORKING_DIR=$HOME/.$PROJECT_NAME
   fi
   
-  _DEFAULT_ACCOUNT_CONF_PATH="$STARTSSL_WORKING_DIR/account.conf"
+  _DEFAULT_ACCOUNT_CONF_PATH="$STARTAPI_WORKING_DIR/account.conf"
 
   if [ -z "$ACCOUNT_CONF_PATH" ] ; then
     if [ -f "$_DEFAULT_ACCOUNT_CONF_PATH" ] ; then
@@ -850,31 +850,31 @@ _initpath() {
   fi
   
   if [ -z "$APACHE_CONF_BACKUP_DIR" ] ; then
-    APACHE_CONF_BACKUP_DIR="$STARTSSL_WORKING_DIR"
+    APACHE_CONF_BACKUP_DIR="$STARTAPI_WORKING_DIR"
   fi
   
   if [ -z "$USER_AGENT" ] ; then
     USER_AGENT="$DEFAULT_USER_AGENT"
   fi
   
-  _DEFAULT_ACCOUNT_KEY_PATH="$STARTSSL_WORKING_DIR/account.key"
+  _DEFAULT_ACCOUNT_KEY_PATH="$STARTAPI_WORKING_DIR/account.key"
   if [ -z "$ACCOUNT_KEY_PATH" ] ; then
     ACCOUNT_KEY_PATH="$_DEFAULT_ACCOUNT_KEY_PATH"
   fi
   _debug "ACCOUNT_KEY_PATH" "$ACCOUNT_KEY_PATH"
-  _DEFAULT_ACCOUNT_CERT_PATH="$STARTSSL_WORKING_DIR/account.cer"
+  _DEFAULT_ACCOUNT_CERT_PATH="$STARTAPI_WORKING_DIR/account.cer"
   if [ -z "$ACCOUNT_CERT_PATH" ] ; then
     ACCOUNT_CERT_PATH="$_DEFAULT_ACCOUNT_CERT_PATH"
   fi
   
-  HTTP_HEADER="$STARTSSL_WORKING_DIR/http.header"
+  HTTP_HEADER="$STARTAPI_WORKING_DIR/http.header"
   
   WGET="wget -q --certificate=\"$ACCOUNT_CERT_PATH\" --private-key=\"$ACCOUNT_KEY_PATH\" "
   if [ "$DEBUG" ] && [ "$DEBUG" -ge "2" ] ; then
     WGET="$WGET -d "
   fi
 
-  _CURL_DUMP="$STARTSSL_WORKING_DIR/curl.dump"
+  _CURL_DUMP="$STARTAPI_WORKING_DIR/curl.dump"
   CURL="curl -L --silent –-key $ACCOUNT_KEY_PATH --cert $ACCOUNT_CERT_PATH "
   if [ "$DEBUG" ] && [ "$DEBUG" -ge "2" ] ; then
     CURL="$CURL --trace-ascii $_CURL_DUMP "
@@ -885,7 +885,7 @@ _initpath() {
     CURL="$CURL --insecure  "
   fi
 
-  _DEFAULT_CERT_HOME="$STARTSSL_WORKING_DIR"
+  _DEFAULT_CERT_HOME="$STARTAPI_WORKING_DIR"
   if [ -z "$CERT_HOME" ] ; then
     CERT_HOME="$_DEFAULT_CERT_HOME"
   fi
@@ -1627,18 +1627,18 @@ installcronjob() {
 
   _info "Installing cron job"
   if ! crontab -l | grep "$PROJECT_ENTRY --cron" ; then 
-    if [ -f "$STARTSSL_WORKING_DIR/$PROJECT_ENTRY" ] ; then
-      lesh="\"$STARTSSL_WORKING_DIR\"/$PROJECT_ENTRY"
+    if [ -f "$STARTAPI_WORKING_DIR/$PROJECT_ENTRY" ] ; then
+      lesh="\"$STARTAPI_WORKING_DIR\"/$PROJECT_ENTRY"
     else
       _err "Can not install cronjob, $PROJECT_ENTRY not found."
       return 1
     fi
-    crontab -l | { cat; echo "0 0 * * * $lesh --cron --home \"$STARTSSL_WORKING_DIR\" > /dev/null"; } | crontab -
+    crontab -l | { cat; echo "0 0 * * * $lesh --cron --home \"$STARTAPI_WORKING_DIR\" > /dev/null"; } | crontab -
   fi
   if [ "$?" != "0" ] ; then
     _err "Install cron job failed. You need to manually renew your certs."
     _err "Or you can add cronjob by yourself:"
-    _err "$lesh --cron --home \"$STARTSSL_WORKING_DIR\" > /dev/null"
+    _err "$lesh --cron --home \"$STARTAPI_WORKING_DIR\" > /dev/null"
     return 1
   fi
 }
@@ -1651,8 +1651,8 @@ uninstallcronjob() {
   cr="$(crontab -l | grep "$PROJECT_ENTRY --cron")"
   if [ "$cr" ] ; then 
     crontab -l | sed "/$PROJECT_ENTRY --cron/d" | crontab -
-    STARTSSL_WORKING_DIR="$(echo "$cr" | cut -d ' ' -f 9 | tr -d '"')"
-    _info STARTSSL_WORKING_DIR "$STARTSSL_WORKING_DIR"
+    STARTAPI_WORKING_DIR="$(echo "$cr" | cut -d ' ' -f 9 | tr -d '"')"
+    _info STARTAPI_WORKING_DIR "$STARTAPI_WORKING_DIR"
   fi 
   _initpath
 
@@ -1799,15 +1799,15 @@ _setShebang() {
 _installalias() {
   _initpath
 
-  _envfile="$STARTSSL_WORKING_DIR/$PROJECT_ENTRY.env"
+  _envfile="$STARTAPI_WORKING_DIR/$PROJECT_ENTRY.env"
   if [ "$_upgrading" ] && [ "$_upgrading" = "1" ] ; then
-    echo "$(cat $_envfile)" | sed "s|^STARTSSL_WORKING_DIR.*$||" > "$_envfile"
+    echo "$(cat $_envfile)" | sed "s|^STARTAPI_WORKING_DIR.*$||" > "$_envfile"
     echo "$(cat $_envfile)" | sed "s|^alias le.*$||" > "$_envfile"
     echo "$(cat $_envfile)" | sed "s|^alias le.sh.*$||" > "$_envfile"
   fi
 
-  _setopt "$_envfile" "export STARTSSL_WORKING_DIR" "=" "\"$STARTSSL_WORKING_DIR\""
-  _setopt "$_envfile" "alias $PROJECT_ENTRY" "=" "\"$STARTSSL_WORKING_DIR/$PROJECT_ENTRY\""
+  _setopt "$_envfile" "export STARTAPI_WORKING_DIR" "=" "\"$STARTAPI_WORKING_DIR\""
+  _setopt "$_envfile" "alias $PROJECT_ENTRY" "=" "\"$STARTAPI_WORKING_DIR/$PROJECT_ENTRY\""
 
   _profile="$(_detect_profile)"
   if [ "$_profile" ] ; then
@@ -1815,24 +1815,24 @@ _installalias() {
     _setopt "$_profile" ". \"$_envfile\""
     _info "OK, Close and reopen your terminal to start using $PROJECT_NAME"
   else
-    _info "No profile is found, you will need to go into $STARTSSL_WORKING_DIR to use $PROJECT_NAME"
+    _info "No profile is found, you will need to go into $STARTAPI_WORKING_DIR to use $PROJECT_NAME"
   fi
   
 
   #for csh
-  _cshfile="$STARTSSL_WORKING_DIR/$PROJECT_ENTRY.csh"
+  _cshfile="$STARTAPI_WORKING_DIR/$PROJECT_ENTRY.csh"
   _csh_profile="$HOME/.cshrc"
   if [ -f "$_csh_profile" ] ; then
-    _setopt "$_cshfile" "setenv STARTSSL_WORKING_DIR" " " "\"$STARTSSL_WORKING_DIR\""
-    _setopt "$_cshfile" "alias $PROJECT_ENTRY" " " "\"$STARTSSL_WORKING_DIR/$PROJECT_ENTRY\""
+    _setopt "$_cshfile" "setenv STARTAPI_WORKING_DIR" " " "\"$STARTAPI_WORKING_DIR\""
+    _setopt "$_cshfile" "alias $PROJECT_ENTRY" " " "\"$STARTAPI_WORKING_DIR/$PROJECT_ENTRY\""
     _setopt "$_csh_profile"  "source \"$_cshfile\""
   fi
   
   #for tcsh
   _tcsh_profile="$HOME/.tcshrc"
   if [ -f "$_tcsh_profile" ] ; then
-    _setopt "$_cshfile" "setenv STARTSSL_WORKING_DIR" " " "\"$STARTSSL_WORKING_DIR\""
-    _setopt "$_cshfile" "alias $PROJECT_ENTRY" " " "\"$STARTSSL_WORKING_DIR/$PROJECT_ENTRY\""
+    _setopt "$_cshfile" "setenv STARTAPI_WORKING_DIR" " " "\"$STARTAPI_WORKING_DIR\""
+    _setopt "$_cshfile" "alias $PROJECT_ENTRY" " " "\"$STARTAPI_WORKING_DIR/$PROJECT_ENTRY\""
     _setopt "$_tcsh_profile"  "source \"$_cshfile\""
   fi
 
@@ -1852,23 +1852,23 @@ install() {
   fi
   
 
-  _info "Installing to $STARTSSL_WORKING_DIR"
+  _info "Installing to $STARTAPI_WORKING_DIR"
 
-  if ! mkdir -p "$STARTSSL_WORKING_DIR" ; then
-    _err "Can not create working dir: $STARTSSL_WORKING_DIR"
+  if ! mkdir -p "$STARTAPI_WORKING_DIR" ; then
+    _err "Can not create working dir: $STARTAPI_WORKING_DIR"
     return 1
   fi
   
-  chmod 700 "$STARTSSL_WORKING_DIR"
+  chmod 700 "$STARTAPI_WORKING_DIR"
 
-  cp $PROJECT_ENTRY "$STARTSSL_WORKING_DIR/" && chmod +x "$STARTSSL_WORKING_DIR/$PROJECT_ENTRY"
+  cp $PROJECT_ENTRY "$STARTAPI_WORKING_DIR/" && chmod +x "$STARTAPI_WORKING_DIR/$PROJECT_ENTRY"
 
   if [ "$?" != "0" ] ; then
     _err "Install failed, can not copy $PROJECT_ENTRY"
     return 1
   fi
 
-  _info "Installed to $STARTSSL_WORKING_DIR/$PROJECT_ENTRY"
+  _info "Installed to $STARTAPI_WORKING_DIR/$PROJECT_ENTRY"
 
   _installalias
 
@@ -1898,9 +1898,9 @@ install() {
     if _exists bash ; then
       _info "Good, bash is installed, change the shebang to use bash as prefered."
       _shebang='#!/usr/bin/env bash'
-      _setShebang "$STARTSSL_WORKING_DIR/$PROJECT_ENTRY" "$_shebang"
-      if [ -d "$STARTSSL_WORKING_DIR/dnsapi" ] ; then
-        for _apifile in $(ls "$STARTSSL_WORKING_DIR/dnsapi/"*.sh) ; do
+      _setShebang "$STARTAPI_WORKING_DIR/$PROJECT_ENTRY" "$_shebang"
+      if [ -d "$STARTAPI_WORKING_DIR/dnsapi" ] ; then
+        for _apifile in $(ls "$STARTAPI_WORKING_DIR/dnsapi/"*.sh) ; do
           _setShebang "$_apifile" "$_shebang"
         done
       fi
@@ -1917,23 +1917,23 @@ uninstall() {
   _profile="$(_detect_profile)"
   if [ "$_profile" ] ; then
     text="$(cat $_profile)"
-    echo "$text" | sed "s|^.*\"$STARTSSL_WORKING_DIR/$PROJECT_NAME.env\"$||" > "$_profile"
+    echo "$text" | sed "s|^.*\"$STARTAPI_WORKING_DIR/$PROJECT_NAME.env\"$||" > "$_profile"
   fi
 
   _csh_profile="$HOME/.cshrc"
   if [ -f "$_csh_profile" ] ; then
     text="$(cat $_csh_profile)"
-    echo "$text" | sed "s|^.*\"$STARTSSL_WORKING_DIR/$PROJECT_NAME.csh\"$||" > "$_csh_profile"
+    echo "$text" | sed "s|^.*\"$STARTAPI_WORKING_DIR/$PROJECT_NAME.csh\"$||" > "$_csh_profile"
   fi
   
   _tcsh_profile="$HOME/.tcshrc"
   if [ -f "$_tcsh_profile" ] ; then
     text="$(cat $_tcsh_profile)"
-    echo "$text" | sed "s|^.*\"$STARTSSL_WORKING_DIR/$PROJECT_NAME.csh\"$||" > "$_tcsh_profile"
+    echo "$text" | sed "s|^.*\"$STARTAPI_WORKING_DIR/$PROJECT_NAME.csh\"$||" > "$_tcsh_profile"
   fi
   
-  rm -f $STARTSSL_WORKING_DIR/$PROJECT_ENTRY
-  _info "The keys and certs are in $STARTSSL_WORKING_DIR, you can remove them by yourself."
+  rm -f $STARTAPI_WORKING_DIR/$PROJECT_ENTRY
+  _info "The keys and certs are in $STARTAPI_WORKING_DIR, you can remove them by yourself."
 
 }
 
@@ -2222,7 +2222,7 @@ _process() {
         shift
         ;;
     --home)
-        STARTSSL_WORKING_DIR="$2"
+        STARTAPI_WORKING_DIR="$2"
         shift
         ;;
     --certhome)
