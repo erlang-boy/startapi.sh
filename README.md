@@ -82,7 +82,9 @@ root@v1:~# startapi.sh -h
 
 # Create your StartSSL.com account and get your api key and api token:
 
-(todo)
+Before you can issue cert, you must register an account at startssl.com and get the api key and api token:
+
+https://github.com/Neilpang/startapi.sh/wiki/Create-startssl-api-token-and-api-key
 
 ```
 startapi.sh --setAPIKey  api.p12  --password xxxxxxxxxx
