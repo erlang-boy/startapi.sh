@@ -2,9 +2,9 @@
 
 VER=0.0.1
 
-PROJECT_NAME="startssl.sh"
+PROJECT_NAME="startapi.sh"
 
-PROJECT_ENTRY="startssl.sh"
+PROJECT_ENTRY="startapi.sh"
 
 PROJECT="https://github.com/Neilpang/$PROJECT_NAME"
 
