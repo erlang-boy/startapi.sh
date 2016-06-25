@@ -19,14 +19,7 @@ VTYPE_EMAIL="email"
 TOKEN_OK="ok"
 
 
-BEGIN_CSR="-----BEGIN CERTIFICATE REQUEST-----"
-END_CSR="-----END CERTIFICATE REQUEST-----"
-
-BEGIN_CERT="-----BEGIN CERTIFICATE-----"
-END_CERT="-----END CERTIFICATE-----"
-
 RENEW_SKIP=2
-
 
 
 _URGLY_PRINTF=""
@@ -845,14 +838,7 @@ _initpath() {
       _info "Using stage api:$API"
     fi  
   fi
-  
-  if [ -z "$ACME_DIR" ] ; then
-    ACME_DIR="/home/.acme"
-  fi
-  
-  if [ -z "$APACHE_CONF_BACKUP_DIR" ] ; then
-    APACHE_CONF_BACKUP_DIR="$STARTAPI_WORKING_DIR"
-  fi
+
   
   if [ -z "$USER_AGENT" ] ; then
     USER_AGENT="$DEFAULT_USER_AGENT"
@@ -938,148 +924,9 @@ _initpath() {
   
 }
 
-
-_apachePath() {
-  if ! _exists apachectl ; then
-    _err "'apachecrl not found. It seems that apache is not installed, or you are not root user.'"
-    _err "Please use webroot mode to try again."
-    return 1
-  fi
-  httpdconfname="$(apachectl -V | grep SERVER_CONFIG_FILE= | cut -d = -f 2 | tr -d '"' )"
-  _debug httpdconfname "$httpdconfname"
-  if _startswith "$httpdconfname" '/' ; then
-    httpdconf="$httpdconfname"
-    httpdconfname="$(basename $httpdconfname)"
-  else
-    httpdroot="$(apachectl -V | grep HTTPD_ROOT= | cut -d = -f 2 | tr -d '"' )"
-    _debug httpdroot "$httpdroot"
-    httpdconf="$httpdroot/$httpdconfname"
-    httpdconfname="$(basename $httpdconfname)"
-  fi
-  _debug httpdconf "$httpdconf"
-  _debug httpdconfname "$httpdconfname"
-  if [ ! -f "$httpdconf" ] ; then
-    _err "Apache Config file not found" "$httpdconf"
-    return 1
-  fi
-  return 0
-}
-
-_restoreApache() {
-  if [ -z "$usingApache" ] ; then
-    return 0
-  fi
-  _initpath
-  if ! _apachePath ; then
-    return 1
-  fi
-  
-  if [ ! -f "$APACHE_CONF_BACKUP_DIR/$httpdconfname" ] ; then
-    _debug "No config file to restore."
-    return 0
-  fi
-  
-  cat "$APACHE_CONF_BACKUP_DIR/$httpdconfname" > "$httpdconf"
-  _debug "Restored: $httpdconf."
-  if ! apachectl  -t >/dev/null 2>&1 ; then
-    _err "Sorry, restore apache config error, please contact me."
-    return 1;
-  fi
-  _debug "Restored successfully."
-  rm -f "$APACHE_CONF_BACKUP_DIR/$httpdconfname"
-  return 0  
-}
-
-_setApache() {
-  _initpath
-  if ! _apachePath ; then
-    return 1
-  fi
-
-  #test the conf first
-  _info "Checking if there is an error in the apache config file before starting."
-  _msg="$(apachectl  -t  2>&1 )"
-  if [ "$?" != "0" ] ; then
-    _err "Sorry, apache config file has error, please fix it first, then try again."
-    _err "Don't worry, there is nothing changed to your system."
-    _err "$_msg"
-    return 1;
-  else
-    _info "OK"
-  fi
-  
-  #backup the conf
-  _debug "Backup apache config file" "$httpdconf"
-  if ! cp "$httpdconf" "$APACHE_CONF_BACKUP_DIR/" ; then
-    _err "Can not backup apache config file, so abort. Don't worry, the apache config is not changed."
-    _err "This might be a bug of $PROJECT_NAME , pleae report issue: $PROJECT"
-    return 1
-  fi
-  _info "JFYI, Config file $httpdconf is backuped to $APACHE_CONF_BACKUP_DIR/$httpdconfname"
-  _info "In case there is an error that can not be restored automatically, you may try restore it yourself."
-  _info "The backup file will be deleted on sucess, just forget it."
-  
-  #add alias
-  
-  apacheVer="$(apachectl -V | grep "Server version:" | cut -d : -f 2 | cut -d " " -f 2 | cut -d '/' -f 2 )"
-  _debug "apacheVer" "$apacheVer"
-  apacheMajer="$(echo "$apacheVer" | cut -d . -f 1)"
-  apacheMinor="$(echo "$apacheVer" | cut -d . -f 2)"
-
-  if [ "$apacheVer" ] && [ "$apacheMajer$apacheMinor" -ge "24" ] ; then
-    echo "
-Alias /.well-known/acme-challenge  $ACME_DIR
-
-<Directory $ACME_DIR >
-Require all granted
-</Directory>
-  " >> "$httpdconf"
-  else
-    echo "
-Alias /.well-known/acme-challenge  $ACME_DIR
-
-<Directory $ACME_DIR >
-Order allow,deny
-Allow from all
-</Directory>
-  " >> "$httpdconf"
-  fi
-
-  _msg="$(apachectl  -t  2>&1 )"
-  if [ "$?" != "0" ] ; then
-    _err "Sorry, apache config error"
-    if _restoreApache ; then
-      _err "The apache config file is restored."
-    else
-      _err "Sorry, The apache config file can not be restored, please report bug."
-    fi
-    return 1;
-  fi
-  
-  if [ ! -d "$ACME_DIR" ] ; then
-    mkdir -p "$ACME_DIR"
-    chmod 755 "$ACME_DIR"
-  fi
-  
-  if ! apachectl  graceful ; then
-    _err "Sorry, apachectl  graceful error, please contact me."
-    _restoreApache
-    return 1;
-  fi
-  usingApache="1"
-  return 0
-}
-
 _clearup() {
   _stopserver $serverproc
   serverproc=""
-  _restoreApache
-  if [ -z "$DEBUG" ] ; then
-    rm -f "$TLS_CONF"
-    rm -f "$TLS_CERT"
-    rm -f "$TLS_KEY"
-    rm -f "$TLS_CSR"
-  fi
 }
 
 
@@ -1179,30 +1026,16 @@ issue() {
       return 1
     fi
   fi
-  
-  if _hasfield "$Le_Webroot" "apache" ; then
-    if ! _setApache ; then
-      _err "set up apache error. Report error to me."
-      return 1
-    fi
-  else
-    usingApache=""
-  fi
+
   
 
   if [ ! -f "$ACCOUNT_KEY_PATH" ] ; then
     _err "Please give account key first."
-    if [ "$usingApache" ] ; then
-      _restoreApache
-    fi
     return 1
   fi
   
   if [ -z "$ACCOUNT_TOKEN" ] ; then
     _err "Please set account api token first."
-    if [ "$usingApache" ] ; then
-      _restoreApache
-    fi
     return 1
   fi
 
@@ -1315,24 +1148,14 @@ issue() {
         _debug serverproc $serverproc
 
       else
-        if [ "$_currentRoot" = "apache" ] ; then
-          wellknown_path="$ACME_DIR"
-        else
-          wellknown_path="$_currentRoot"
-          removelevel='3'
-        fi
-
+        wellknown_path="$_currentRoot"
+        removelevel='3'
         _debug wellknown_path "$wellknown_path"
 
         _debug "writing token:$token to $wellknown_path/$d.html"
 
         mkdir -p "$wellknown_path"
         printf "%s" "$token" > "$wellknown_path/$d.html"
-        if [ ! "$usingApache" ] ; then
-          webroot_owner=$(_stat $_currentRoot)
-          _debug "Changing owner/group of .well-known to $webroot_owner"
-          chown -R $webroot_owner "$_currentRoot/.well-known"
-        fi
         
       fi
 
@@ -1980,7 +1803,6 @@ Parameters:
     
   --webroot, -w  /path/to/webroot   Specifies the web root folder for web root mode.
   --standalone                      Use standalone mode.
-  --apache                          Use apache mode.
  
   --keylength, -k [2048]            Specifies the domain key length: 2048, 3072, 4096, 8192 or ec-256, ec-384.
 
@@ -2167,14 +1989,6 @@ _process() {
         ;;        
     --standalone)
         wvalue="no"
-        if [ -z "$_webroot" ] ; then
-          _webroot="$wvalue"
-        else
-          _webroot="$_webroot,$wvalue"
-        fi
-        ;;
-    --apache)
-        wvalue="apache"
         if [ -z "$_webroot" ] ; then
           _webroot="$wvalue"
         else

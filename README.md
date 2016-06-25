@@ -20,9 +20,8 @@ Wiki: https://github.com/Neilpang/startapi.sh/wiki
 # Supported Mode
 
 1. Webroot mode
-2. Standalone mode
-3. Apache mode
-4. Email mode (coming soon)
+1. Standalone mode
+1. Email mode (coming soon)
 
 
 # How to install
@@ -152,22 +151,6 @@ startapi.sh --issue --standalone -d aa.com -d www.aa.com -d cp.aa.com
 
 More examples: https://github.com/Neilpang/startapi.sh/wiki/How-to-issue-a-cert
 
-
-# Use Apache mode
-
-**(requires you be root/sudoer, since it is required to interact with apache server)**
-
-If you are running a web server, apache or nginx, it is recommended to use the `Webroot mode`.
-
-Particularly, if you are running an apache server, you should use apache mode instead. This mode doesn't write any files to your web root folder.
-
-Just set string "apache" as the second argument, it will force use of apache plugin automatically.
-
-```
-startapi.sh --issue --apache -d aa.com -d www.aa.com -d user.aa.com
-```
-
-More examples: https://github.com/Neilpang/startapi.sh/wiki/How-to-issue-a-cert
 
 # Use email mode
 
