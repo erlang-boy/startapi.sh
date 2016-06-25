@@ -414,6 +414,13 @@ _post() {
       response="$($_CURL --user-agent "$USER_AGENT" -X $httpmethod -H "$_H1" -H "$_H2" -H "$_H3" -H "$_H4" --data-urlencode "$body" "$url" )"
     fi
     _ret="$?"
+    if [ "$_ret" != "0" ] ; then
+      _err "Please refer to https://curl.haxx.se/libcurl/c/libcurl-errors.html for error code: $_ret"
+      if [ "$DEBUG" ] && [ "$DEBUG" -ge "2" ] ; then
+        _err "Here is the curl dump log:"
+        _err "$(cat "$_CURL_DUMP")"
+      fi
+    fi
   else
     _debug "WGET" "$WGET"
     if [ "$needbase64" ] ; then
@@ -430,6 +437,9 @@ _post() {
       fi
     fi
     _ret="$?"
+    if [ "$_ret" != "0" ] ; then
+      _err "Please refer to https://www.gnu.org/software/wget/manual/html_node/Exit-Status.html for error code: $_ret" 
+    fi
     _sed_i "s/^ *//g" "$HTTP_HEADER"
   fi
   _debug "_ret" "$_ret"
@@ -864,10 +874,10 @@ _initpath() {
     WGET="$WGET -d "
   fi
 
-  dp="$STARTSSL_WORKING_DIR/curl.dump"
+  _CURL_DUMP="$STARTSSL_WORKING_DIR/curl.dump"
   CURL="curl -L --silent –-key $ACCOUNT_KEY_PATH --cert $ACCOUNT_CERT_PATH "
   if [ "$DEBUG" ] && [ "$DEBUG" -ge "2" ] ; then
-    CURL="$CURL --trace-ascii $dp "
+    CURL="$CURL --trace-ascii $_CURL_DUMP "
   fi
 
   if [ "$Le_Insecure" ] ; then
