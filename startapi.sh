@@ -1109,9 +1109,12 @@ _clearupwebbroot() {
     return 0
   fi
   
-  _debug "remove $__webroot/$3"
-  rm -rf "$__webroot/$3"
-
+  if [ "$2" ] ; then 
+    _debug "remove $__webroot/$3"
+    rm -rf "$__webroot/$3"
+  else
+    _debug "Skip for removelevel:$2"
+  fi
   return 0
 
 }
