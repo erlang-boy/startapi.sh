@@ -1354,12 +1354,7 @@ issue() {
       _debug "checking"
       
       response="$(_WebControlValidation $d)"
-      if [ "$?" != "0" ] ; then
-        _err "$d:Verify error:$response"
-        _clearupwebbroot "$_currentRoot" "$removelevel" "$d.html"
-        _clearup
-        return 1
-      fi
+
       _debug2 original "$response"
 
       status=$(echo "$response" | grep '"errorCode": 1')
