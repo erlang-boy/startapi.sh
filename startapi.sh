@@ -1357,7 +1357,7 @@ issue() {
 
       _debug2 original "$response"
 
-      status=$(echo "$response" | grep '"errorCode": 1')
+      status=$(echo "$response" | grep '"shortMsg *": *"success"')
       
       if [ "$status" ] ; then
         _info "Success"
