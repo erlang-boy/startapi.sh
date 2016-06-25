@@ -558,7 +558,7 @@ _WebControlValidation() {
 #queryvalidateddomains
 _queryvalidateddomains() {
   _initpath
-  _startapi "queryvalidateddomains" | grep "^ *\"data\":" | cut -d : -f 2 | tr -d " \""
+  _startapi "queryvalidateddomains" | grep "^ *\"data\":" | cut -d : -f 2 | tr -d " \"\r\n"
 }
 
 
@@ -1220,6 +1220,7 @@ issue() {
   # verify each domain
   _info "Verify each domain"
   validatedDomains="$(_queryvalidateddomains)"
+  _debug "validatedDomains" "$validatedDomains"
   sep='#'
   if [ -z "$vlist" ] ; then
     alldomains=$(echo "$Le_Domain,$Le_Alt" |  tr ',' ' ' )
