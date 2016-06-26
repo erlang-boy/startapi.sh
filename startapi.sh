@@ -18,6 +18,7 @@ VTYPE_HTTP="http"
 VTYPE_EMAIL="email"
 TOKEN_OK="ok"
 
+MAX_RENEW=300
 
 RENEW_SKIP=2
 
@@ -1235,8 +1236,8 @@ issue() {
   Le_CertCreateTimeStr=$(date -u )
   _savedomainconf  "Le_CertCreateTimeStr"  "$Le_CertCreateTimeStr"
   
-  if [ -z "$Le_RenewalDays" ] || [ "$Le_RenewalDays" -lt "0" ] || [ "$Le_RenewalDays" -gt "80" ] ; then
-    Le_RenewalDays=300
+  if [ -z "$Le_RenewalDays" ] || [ "$Le_RenewalDays" -lt "0" ] || [ "$Le_RenewalDays" -gt "$MAX_RENEW" ] ; then
+    Le_RenewalDays=$MAX_RENEW
   else
     _savedomainconf  "Le_RenewalDays"   "$Le_RenewalDays"
   fi  
@@ -1820,7 +1821,7 @@ Parameters:
   --home                            Specifies the home dir for $PROJECT_NAME .
   --certhome                        Specifies the home dir to save all the certs, only valid for '--install' command.
   --useragent                       Specifies the user agent string. it will be saved for future use too.
-  --days                            Specifies the days to renew the cert when using '--issue' command. The max value is 80 days.
+  --days                            Specifies the days to renew the cert when using '--issue' command. The max value is $MAX_RENEW days.
   --httpport                        Specifies the standalone listening port. Only valid if the server is behind a reverse proxy or load balancer.
   --listraw                         Only used for '--list' command, list the certs in raw format.
   --stopRenewOnError, -se           Only valid for '--renewall' command. Stop to renew all if one cert has error in renewal.
