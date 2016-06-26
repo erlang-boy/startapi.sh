@@ -117,7 +117,7 @@ You must point and bind all the domains to the same webroot dir: `/home/wwwroot/
 
 Generate/issued certs will be placed in `~/.startapi.sh/aa.com/`
 
-The issued cert will be renewed every 80 days automatically.
+The issued cert will be renewed every 300 days automatically.
 
 More examples: https://github.com/Neilpang/startapi.sh/wiki/How-to-issue-a-cert
 
@@ -139,7 +139,7 @@ Only the domain is required, all the other parameters are optional.
 
 Install the issued cert/key to the production apache or nginx path.
 
-The cert will be `renewed every 80 days by default` (which is configurable). Once the cert is renewed, the apache/nginx will be automatically reloaded by the command: `service apache2 reload` or `service nginx reload`.
+The cert will be `renewed every 300 days by default` (which is configurable). Once the cert is renewed, the apache/nginx will be automatically reloaded by the command: `service apache2 reload` or `service nginx reload`.
 
 # Use Standalone server to issue cert
 
