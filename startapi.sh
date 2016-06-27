@@ -1834,7 +1834,7 @@ Parameters:
   --httpport                        Specifies the standalone listening port. Only valid if the server is behind a reverse proxy or load balancer.
   --listraw                         Only used for '--list' command, list the certs in raw format.
   --stopRenewOnError, -se           Only valid for '--renewall' command. Stop to renew all if one cert has error in renewal.
-  --nocron                          Only valid for `--install` command, which means: do not install the default cron job. In this case, the certs will not be renewed automatically.
+  --nocron                          Only valid for '--install' command, which means: do not install the default cron job. In this case, the certs will not be renewed automatically.
   "
 }
 
@@ -2110,7 +2110,7 @@ _process() {
 
   case "${_CMD}" in
     install) install "$_nocron" ;;
-    uninstall) uninstall ;;
+    uninstall) uninstall "$_nocron" ;;
     upgrade) upgrade ;;
     issue)
       issue  "$_webroot"  "$_domain" "$_altdomains" "$_keylength" "$_certpath" "$_keypath" "$_capath" "$_reloadcmd" "$_fullchainpath"
