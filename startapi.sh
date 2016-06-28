@@ -285,6 +285,19 @@ setAPIKey() {
   _debug _p12 "$_p12"
   _debug _password "$_password"
   _initpath
+  if _startswith "$_p12" "http" ; then
+    _info "Downloading $_p12"
+    if (
+      cd "$STARTAPI_WORKING_DIR"
+      _get "$_p12" > api.p12
+    ) ; then
+      _p12="$STARTAPI_WORKING_DIR/api.p12"
+      _info "Download success: $_p12"
+    else
+      _err "Can not download $_p12"
+      return 1
+    fi
+  fi
   _debug "Installing account key to: $ACCOUNT_KEY_PATH"
   openssl  pkcs12 -in "$_p12"   -out "$ACCOUNT_KEY_PATH"  -nocerts  -nodes  -password "pass:$_password"
   
