@@ -1831,6 +1831,7 @@ Parameters:
   --iv                              Issue Class 2 IVSSL, you must buy the Class 2 IV validation from startssl.com
   --keylength, -k [2048]            Specifies the domain key length: 2048, 3072, 4096, 8192 or ec-256, ec-384.
 
+  --certtype [DVSSL|IVSSL|OVSSL|EVSSL]  Certtype: DVSSL by default, IVSSL equals to '--iv'.
   
   These parameters are to install the cert to nginx/apache or anyother server after issue/renew a cert:
   
