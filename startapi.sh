@@ -2015,6 +2015,10 @@ _process() {
     --iv)
         _certtype="IVSSL"
         ;;
+    --certtype)
+        _certtype="$2"
+        shift
+        ;;
     --debug)
         if [ -z "$2" ] || _startswith "$2" "-" ; then
           DEBUG="1"
