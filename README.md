@@ -185,8 +185,21 @@ Valid values are:
 3. **ec-521 (secp521r1,  "ECDSA P-521")**
 
 
+# Issue Class 2 IV
+You must pay to startssl.com to pass the Class 2 IV validation,  then you can issue IV certificate:
+Just add `--iv` parameter.
+```
+startapi.sh  --issue -d ....  -w ...   --iv
+```
 
-TODO:
+# Issue Wildcard certificate:
+You must pay to startssl.com to pass the Class 2 IV validation,  then you can issue Wildcard IV certificate:
+
+```
+startapi.sh  --issue  -d "aa.com"  -d "*.aa.com"  -w /home/wwwroot/aa.com   --iv
+```
+
+
 
 # Acknowledgment
 1. StartSSL.com: https://www.startssl.com
