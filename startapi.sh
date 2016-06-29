@@ -365,10 +365,6 @@ createCSR() {
   
 }
 
-_urlencode() {
-  __n=$(cat)
-  echo $__n | tr '/+' '_-' | tr -d '= '
-}
 
 _time2str() {
   #BSD
@@ -381,22 +377,6 @@ _time2str() {
     return
   fi
   
-}
-
-_normalizeJson() {
-  sed "s/\" *: *\([\"{\[]\)/\":\1/g" | sed "s/^ *\([^ ]\)/\1/" | tr -d "\r\n"
-}
-
-_stat() {
-  #Linux
-  if stat -c '%U:%G' "$1" 2>/dev/null ; then
-    return
-  fi
-  
-  #BSD
-  if stat -f  '%Su:%Sg' "$1" 2>/dev/null ; then
-    return
-  fi
 }
 
 # body  url [needbase64] [POST|PUT]
@@ -994,7 +974,7 @@ issue() {
   Le_RealCACertPath="$7"
   Le_ReloadCmd="$8"
   Le_RealFullChainPath="$9"
-  
+  Le_CertType="${10}"
 
   _initpath $Le_Domain
 
@@ -1011,6 +991,9 @@ issue() {
   _savedomainconf "Le_Alt"          "$Le_Alt"
   _savedomainconf "Le_Webroot"      "$Le_Webroot"
   _savedomainconf "Le_Keylength"    "$Le_Keylength"
+  if [ "$Le_CertType" ] ; then
+    _savedomainconf "Le_CertType"    "$Le_CertType"
+  fi
   
   if [ "$Le_Alt" = "no" ] ; then
     Le_Alt=""
@@ -1088,11 +1071,16 @@ issue() {
       _debug "_currentRoot" "$_currentRoot"
       _index=$(_math $_index + 1)
 
+      if _startswith "$d" '*.' ; then
+        _info "Wildcard: $d"
+        d="$(echo "$d" |  cut -d . -f 2-99)"
+      fi
+
       if _isValidated "$validatedDomains" "$d" ; then
         token="$TOKEN_OK"
       else
         vtype="$VTYPE_HTTP"
-      
+
         _info "Getting token for domain" $d
         
         response="$(_ApplyWebControl "$d")"
@@ -1148,6 +1136,19 @@ issue() {
       continue
     fi
 
+    validatedDomains="$(_queryvalidateddomains)"
+    _debug "validatedDomains" "$validatedDomains"
+  
+    if _startswith "$d" '*.' ; then
+      _info "Wildcard: $d"
+      d="$(echo "$d" |  cut -d . -f 2-99)"
+    fi
+
+    if _isValidated "$validatedDomains" "$d" ; then
+      _info "$d is already validated, skip."
+      continue
+    fi
+        
     removelevel=""
     if [ "$vtype" = "$VTYPE_HTTP" ] ; then
       if [ "$_currentRoot" = "no" ] ; then
@@ -1220,7 +1221,7 @@ issue() {
   _clearup
   _info "Verify finished, start to sign."
   
-  if ! _ApplyCertificate $Le_Domain  "$Le_Domain,$Le_Alt"  > "$CERT_ORDER_PATH" ; then
+  if ! _ApplyCertificate $Le_Domain  "$Le_Domain,$Le_Alt" "" "$Le_CertType" > "$CERT_ORDER_PATH" ; then
     _err "Apply certificate error."
     return 1
   fi
@@ -1295,7 +1296,7 @@ renew() {
   fi
   
   IS_RENEW="1"
-  issue "$Le_Webroot" "$Le_Domain" "$Le_Alt" "$Le_Keylength" "$Le_RealCertPath" "$Le_RealKeyPath" "$Le_RealCACertPath" "$Le_ReloadCmd" "$Le_RealFullChainPath"
+  issue "$Le_Webroot" "$Le_Domain" "$Le_Alt" "$Le_Keylength" "$Le_RealCertPath" "$Le_RealKeyPath" "$Le_RealCACertPath" "$Le_ReloadCmd" "$Le_RealFullChainPath" "$Le_CertType"
   local res=$?
   IS_RENEW=""
 
@@ -1826,7 +1827,8 @@ Parameters:
     
   --webroot, -w  /path/to/webroot   Specifies the web root folder for web root mode.
   --standalone                      Use standalone mode.
- 
+  
+  --iv                              Issue Class 2 IVSSL, you must buy the Class 2 IV validation from startssl.com
   --keylength, -k [2048]            Specifies the domain key length: 2048, 3072, 4096, 8192 or ec-256, ec-384.
 
   
@@ -1910,6 +1912,7 @@ _process() {
   _stopRenewOnError=""
   _apiKey=""
   _nocron=""
+  _certtype=""
   while [ ${#} -gt 0 ] ; do
     case "${1}" in
     
@@ -2007,6 +2010,9 @@ _process() {
         ;;
     --staging|--test)
         STAGE="1"
+        ;;
+    --iv)
+        _certtype="IVSSL"
         ;;
     --debug)
         if [ -z "$2" ] || _startswith "$2" "-" ; then
@@ -2126,7 +2132,7 @@ _process() {
     uninstall) uninstall "$_nocron" ;;
     upgrade) upgrade ;;
     issue)
-      issue  "$_webroot"  "$_domain" "$_altdomains" "$_keylength" "$_certpath" "$_keypath" "$_capath" "$_reloadcmd" "$_fullchainpath"
+      issue  "$_webroot"  "$_domain" "$_altdomains" "$_keylength" "$_certpath" "$_keypath" "$_capath" "$_reloadcmd" "$_fullchainpath" "$_certtype"
       ;;
     installcert)
       installcert "$_domain" "$_certpath" "$_keypath" "$_capath" "$_reloadcmd" "$_fullchainpath"
