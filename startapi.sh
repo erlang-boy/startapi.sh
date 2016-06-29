@@ -1226,6 +1226,12 @@ issue() {
     return 1
   fi
 
+  if ! grep '"status": *1' "$CERT_ORDER_PATH" >/dev/null 2>&1 ; then
+    _err "ApplyCertificate error."
+    _err "$(grep 'shortMsg' "$CERT_ORDER_PATH")"
+    return 1
+  fi
+  
   if [ ! "$USER_PATH" ] || [ ! "$IN_CRON" ] ; then
     USER_PATH="$PATH"
     _saveaccountconf "USER_PATH" "$USER_PATH"
